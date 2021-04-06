@@ -175,25 +175,25 @@ namespace SnakeTheGame
 
                 case ConsoleKey.LeftArrow:
                     {
-                        //snakePosition[1] = --snakePosition[1];
+                        
                         snakePosition[0] = --snakePosition[0];
                     }
                     break;
                 case ConsoleKey.UpArrow:
                     {
-                        //snakePosition[0] = --snakePosition[0];
+                        
                         snakePosition[1] = --snakePosition[1];
                     }
                     break;
                 case ConsoleKey.RightArrow:
                     {
-                        //snakePosition[1] = ++snakePosition[1];
+                       
                         snakePosition[0] = ++snakePosition[0];
                     }
                     break;
                 case ConsoleKey.DownArrow:
                     {
-                        //snakePosition[0] = ++snakePosition[0];
+                        
                         snakePosition[1] = ++snakePosition[1];
                     }
                     break;
