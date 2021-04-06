@@ -6,7 +6,8 @@ using System.Threading;
  * - счётчик очков - ГОТОВО
  * - отселживание конца игры - ГОТОВО НА 50% (ПОКА ТОЛЬКО ПЕРЕСЕЧЕНИЕ ГРАНИЦЫ ПОЛЯ)
  * - управление - ГОТОВО
- * - устранение мигания (отрисовка только изменяющихся элементов?)
+ * - устранение мигания (отрисовка только изменяющихся элементов?) - ГОТОВО
+ * - перейти на ASCII
  */
 namespace SnakeTheGame
 {
@@ -14,11 +15,13 @@ namespace SnakeTheGame
     {
         static void Main(string[] args)
         {
-            bool check, gameOver = false, eating;
+            bool check, gameOver = false, eating=false, notFirstEteration = false;
             int area = 0, threadCount = 0, score = 0;
             char symbol, egg = '0';
             char[,] arena;
             int[] eggPosition = {0, 0};
+            int[] oldEggPosition = new int[2];
+            int[] oldSnakePosition = new int[2];
             ConsoleKey currentDirection = ConsoleKey.LeftArrow;
             Console.Write("Выберите размер игрового поля:\n1) 20*20\n2) 40*40\n3) 60*60\nВаш выбор: ");
             do
@@ -56,9 +59,10 @@ namespace SnakeTheGame
             int[] snakePosition = { 15, 15 };
             do
             {
-                Console.Clear();
+                
 
                 eggPosition = EggPosition(eggPosition, threadCount, area);
+                currentDirection = Movment(currentDirection);
                 snakePosition = SnakePosition(snakePosition, currentDirection);
                 eating = Eating(eggPosition, snakePosition);
                 if (eating)
@@ -71,20 +75,39 @@ namespace SnakeTheGame
                 }
                 gameOver = GameOver(snakePosition, area);
                 arena = Arena(area, symbol);
-                arena[eggPosition[0], eggPosition[1]] = egg;
-                arena[snakePosition[0], snakePosition[1]] = SnakeHeadSymbol(currentDirection);
-                for (int i = 0; i < arena.GetLength(0); i++)
+                if (!notFirstEteration)
                 {
-                    Console.Write("\t");
-                    for (int j = 0; j < arena.GetLength(1); j++)
+                    Console.Clear();
+                    for (int i = 0; i < arena.GetLength(0); i++)
                     {
-                        Console.Write(arena[i, j]);
+                        for (int j = 0; j < arena.GetLength(1); j++)
+                        {
+                            Console.Write(arena[i, j]);
+                        }
+                        Console.Write("\n");
                     }
-                    if (i==0)
-                    {
-                        Console.Write("\t\t\t\t\tScore: {0}", score);
-                    }
-                    Console.Write("\n");
+                    Console.SetCursorPosition(6, area + 1);
+                    Console.Write("Score: {0}", score);
+                    notFirstEteration = true;
+                }
+                else
+                {
+                    Console.SetCursorPosition(oldEggPosition[0], oldEggPosition[1]);
+                    if (oldEggPosition[0] == 0) Console.Write(symbol);
+                    else Console.Write('.');
+                    Console.SetCursorPosition(eggPosition[0], eggPosition[1]);
+                    Console.Write(egg);
+                    Console.SetCursorPosition(oldSnakePosition[0], oldSnakePosition[1]);
+                    Console.Write('.');
+                    Console.SetCursorPosition(snakePosition[0], snakePosition[1]);
+                    Console.Write(SnakeHeadSymbol(currentDirection));
+                    Console.SetCursorPosition(13, area + 1);
+                    Console.Write(score);
+                }
+                for (int i = 0; i < oldEggPosition.Length; i++)
+                {
+                    oldEggPosition[i] = eggPosition[i];
+                    oldSnakePosition[i] = snakePosition[i];
                 }
                 threadCount++;
                 if (threadCount >= 40)
@@ -92,8 +115,7 @@ namespace SnakeTheGame
                     threadCount = 0;
                     egg = '0';
                 }
-                currentDirection = Movment(currentDirection);
-                Thread.Sleep(50);
+                Thread.Sleep(70);
 
             } while (!gameOver);
 
@@ -101,8 +123,8 @@ namespace SnakeTheGame
 
             Console.ReadLine();
         }
-        //Метод для расчёта игрового поля
-        static char[,] Arena(int area, char symbol)
+
+        static char[,] Arena(int area, char symbol) //Метод для расчёта игрового поля
         {
             bool proverka;
             char[,] arena = new char[area, area];
@@ -153,22 +175,26 @@ namespace SnakeTheGame
 
                 case ConsoleKey.LeftArrow:
                     {
-                        snakePosition[1] = --snakePosition[1];
+                        //snakePosition[1] = --snakePosition[1];
+                        snakePosition[0] = --snakePosition[0];
                     }
                     break;
                 case ConsoleKey.UpArrow:
                     {
-                        snakePosition[0] = --snakePosition[0];
+                        //snakePosition[0] = --snakePosition[0];
+                        snakePosition[1] = --snakePosition[1];
                     }
                     break;
                 case ConsoleKey.RightArrow:
                     {
-                        snakePosition[1] = ++snakePosition[1];
+                        //snakePosition[1] = ++snakePosition[1];
+                        snakePosition[0] = ++snakePosition[0];
                     }
                     break;
                 case ConsoleKey.DownArrow:
                     {
-                        snakePosition[0] = ++snakePosition[0];
+                        //snakePosition[0] = ++snakePosition[0];
+                        snakePosition[1] = ++snakePosition[1];
                     }
                     break;
  
@@ -243,7 +269,7 @@ namespace SnakeTheGame
             return headSymbol;
         }
 
-        static bool Eating ( int[] eggPosition, int[] snakePosition)
+        static bool Eating ( int[] eggPosition, int[] snakePosition) //было ли съедено яйцо
         {
             bool eating = false;
             int eggY = eggPosition[0];
