@@ -126,24 +126,17 @@ namespace SnakeTheGame
 
         static char[,] Arena(int area, char symbol) //Метод для расчёта игрового поля
         {
-            bool proverka;
             char[,] arena = new char[area, area];
 
-            
             for (int i = 0; i < arena.GetLength(0); i++) //строки
             {
-                if (i == 0 || i == arena.GetLength(0) - 1)
+                for (int j = 0; j < arena.GetLength(1); j++) // столбцы
                 {
-                    proverka = true;
-                }
-                else proverka = false;
-                for (int j = 0; j < arena.GetLength(1); j++) //столбцы
-                {
-                    if (proverka)
+                    if (i == 0 || i == area - 1)
                     {
                         arena[i, j] = symbol;
                     }
-                    else if (j == 0 || j == arena.GetLength(1) - 1)
+                    else if (j == 0 || j == area - 1)
                     {
                         arena[i, j] = symbol;
                     }
@@ -175,25 +168,21 @@ namespace SnakeTheGame
 
                 case ConsoleKey.LeftArrow:
                     {
-                        
                         snakePosition[0] = --snakePosition[0];
                     }
                     break;
                 case ConsoleKey.UpArrow:
                     {
-                        
                         snakePosition[1] = --snakePosition[1];
                     }
                     break;
                 case ConsoleKey.RightArrow:
                     {
-                       
                         snakePosition[0] = ++snakePosition[0];
                     }
                     break;
                 case ConsoleKey.DownArrow:
                     {
-                        
                         snakePosition[1] = ++snakePosition[1];
                     }
                     break;
