@@ -14,8 +14,8 @@ namespace SnakeTheGame
 {
     class Program
     {
-        static int hieght = 20;
-        static int weight = 20;
+        public static int hieght;
+        public static int weight;
 
         static void ArenaDraw()
         {
@@ -45,7 +45,7 @@ namespace SnakeTheGame
         static void Main(string[] args)
         {
             bool check, gameOver = false, eating=false, notFirstEteration = false;
-            int area = 0, threadCount = 0, score = 0;
+            int threadCount = 0, score = 0;
             char symbol='+', egg = '0';
             int[] eggPosition = {0, 0};
             int[] oldEggPosition = new int[2];
@@ -58,19 +58,22 @@ namespace SnakeTheGame
                 {
                     case "1":
                         {
-                            area = 20;
+                            hieght = 20;
+                            weight = 40;
                             check = true;
                         }
                         break;
                     case "2":
                         {
-                            area = 40;
+                            hieght = 40;
+                            weight = 60;
                             check = true;
                         }
                         break;
                     case "3":
                         {
-                            area = 60;
+                            hieght = 60;
+                            weight = 80;
                             check = true;
                         }
                         break;
@@ -82,8 +85,6 @@ namespace SnakeTheGame
                         break;
                 }
             } while (!check);
-            hieght = area; //временный костыль, потом исправить (переписать методы под эти переменные)
-            weight = area;
             int[] snakePosition = { 15, 15 };
             Console.Clear();
             ArenaDraw();
@@ -91,8 +92,12 @@ namespace SnakeTheGame
             {
                 
 
-                eggPosition = EggPosition(eggPosition, threadCount, area);
+                eggPosition = EggPosition(eggPosition, threadCount);
                 currentDirection = Movment(currentDirection);
+                if (currentDirection == ConsoleKey.UpArrow || currentDirection == ConsoleKey.DownArrow)
+                {
+                    Thread.Sleep(19); //число подобрано эмперически, компенсирует высокую скорость передвижения змейки по вертикали
+                }
                 snakePosition = SnakePosition(snakePosition, currentDirection);
                 eating = Eating(eggPosition, snakePosition);
                 if (eating)
@@ -103,10 +108,10 @@ namespace SnakeTheGame
                     egg = symbol;
 
                 }
-                gameOver = GameOver(snakePosition, area);
+                gameOver = GameOver(snakePosition);
                 if (!notFirstEteration)
                 {
-                    Console.SetCursorPosition(6, area + 1);
+                    Console.SetCursorPosition(6, hieght + 1);
                     Console.Write("Score: {0}", score);
                     notFirstEteration = true;
                 }
@@ -121,7 +126,7 @@ namespace SnakeTheGame
                     Console.Write(' ');
                     Console.SetCursorPosition(snakePosition[0], snakePosition[1]);
                     Console.Write(SnakeHeadSymbol(currentDirection));
-                    Console.SetCursorPosition(13, area + 1);
+                    Console.SetCursorPosition(13, hieght + 1);
                     Console.Write(score);
                 }
                 for (int i = 0; i < oldEggPosition.Length; i++)
@@ -146,15 +151,14 @@ namespace SnakeTheGame
 
 
 
-        static int [] EggPosition(int[] eggPosition, int threadCount, int area) //расчёт позиции яйца
+        static int [] EggPosition(int[] eggPosition, int threadCount) //расчёт позиции яйца
         {
             Random rnd = new Random();
             if (threadCount==0)
             {
-                for (int i = 0; i < eggPosition.Length; i++)
-                {
-                    eggPosition[i] = rnd.Next(1, area - 1);
-                }
+                eggPosition[0] = rnd.Next(1, weight - 1);
+                eggPosition[1] = rnd.Next(1, hieght - 1);
+
             }
             return eggPosition;
         }
@@ -192,12 +196,19 @@ namespace SnakeTheGame
             return snakePosition;
         }
 
-        static bool GameOver (int[] snakePosition, int area) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
+        static bool GameOver (int[] snakePosition) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
         {
             bool gameOver=false;
             for (int i = 0; i < snakePosition.Length; i++)
             {
-                if (snakePosition[i] < 1 || snakePosition[i] >= area-1)
+                if (snakePosition[i] < 1)
+                {
+                    gameOver = true;
+                }
+            }
+            if (!gameOver)
+            {
+                if (snakePosition[0] >= weight - 1 || snakePosition[1] >= hieght - 1)
                 {
                     gameOver = true;
                 }
