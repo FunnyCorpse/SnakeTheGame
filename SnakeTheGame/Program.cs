@@ -2,6 +2,7 @@
 using System.Threading;
 
 /* TO DO:
+ * - навести порядок в переменных
  * - отрисовка змейки
  * - счётчик очков - ГОТОВО
  * - отселживание конца игры - ГОТОВО НА 50% (ПОКА ТОЛЬКО ПЕРЕСЕЧЕНИЕ ГРАНИЦЫ ПОЛЯ)
@@ -13,17 +14,44 @@ namespace SnakeTheGame
 {
     class Program
     {
+        static int hieght = 20;
+        static int weight = 20;
+
+        static void ArenaDraw()
+        {
+            for (int i = 0; i < hieght; i++)
+            {
+                for (int j = 0; j < weight; j++)
+                {
+                    if ((i == 0 && j == 0) || (i == 0 && j == weight - 1) || (i == hieght - 1 && j == 0) || (i == hieght - 1 && j == weight - 1))
+                    {
+                        Console.SetCursorPosition(j, i);
+                        Console.Write("+");
+                    }
+                    else if (i == 0 || i == hieght - 1)
+                    {
+                        Console.SetCursorPosition(j, i);
+                        Console.Write("-");
+                    }
+                    else if (j == 0 || j == weight - 1)
+                    {
+                        Console.SetCursorPosition(j, i);
+                        Console.Write("|");
+                    }
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             bool check, gameOver = false, eating=false, notFirstEteration = false;
             int area = 0, threadCount = 0, score = 0;
-            char symbol, egg = '0';
-            char[,] arena;
+            char symbol='+', egg = '0';
             int[] eggPosition = {0, 0};
             int[] oldEggPosition = new int[2];
             int[] oldSnakePosition = new int[2];
             ConsoleKey currentDirection = ConsoleKey.LeftArrow;
-            Console.Write("Выберите размер игрового поля:\n1) 20*20\n2) 40*40\n3) 60*60\nВаш выбор: ");
+            Console.Write("Выберите размер игрового поля:\n1) 20*20\n2) 40*40\n3) 60*60\nВаш выбор: "); //вынести это недоразумение в отдельный метод
             do
             {
                 switch (Console.ReadLine())
@@ -54,9 +82,11 @@ namespace SnakeTheGame
                         break;
                 }
             } while (!check);
-            Console.WriteLine("Введите символ для отрисовки поля");
-            symbol = Console.ReadLine()[0];
+            hieght = area; //временный костыль, потом исправить (переписать методы под эти переменные)
+            weight = area;
             int[] snakePosition = { 15, 15 };
+            Console.Clear();
+            ArenaDraw();
             do
             {
                 
@@ -74,18 +104,8 @@ namespace SnakeTheGame
 
                 }
                 gameOver = GameOver(snakePosition, area);
-                arena = Arena(area, symbol);
                 if (!notFirstEteration)
                 {
-                    Console.Clear();
-                    for (int i = 0; i < arena.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < arena.GetLength(1); j++)
-                        {
-                            Console.Write(arena[i, j]);
-                        }
-                        Console.Write("\n");
-                    }
                     Console.SetCursorPosition(6, area + 1);
                     Console.Write("Score: {0}", score);
                     notFirstEteration = true;
@@ -93,12 +113,12 @@ namespace SnakeTheGame
                 else
                 {
                     Console.SetCursorPosition(oldEggPosition[0], oldEggPosition[1]);
-                    if (oldEggPosition[0] == 0) Console.Write(symbol);
-                    else Console.Write('.');
+                    if (oldEggPosition[0] == 0) Console.Write("+");
+                    else Console.Write(' ');
                     Console.SetCursorPosition(eggPosition[0], eggPosition[1]);
                     Console.Write(egg);
                     Console.SetCursorPosition(oldSnakePosition[0], oldSnakePosition[1]);
-                    Console.Write('.');
+                    Console.Write(' ');
                     Console.SetCursorPosition(snakePosition[0], snakePosition[1]);
                     Console.Write(SnakeHeadSymbol(currentDirection));
                     Console.SetCursorPosition(13, area + 1);
@@ -124,29 +144,7 @@ namespace SnakeTheGame
             Console.ReadLine();
         }
 
-        static char[,] Arena(int area, char symbol) //Метод для расчёта игрового поля
-        {
-            char[,] arena = new char[area, area];
 
-            for (int i = 0; i < arena.GetLength(0); i++) //строки
-            {
-                for (int j = 0; j < arena.GetLength(1); j++) // столбцы
-                {
-                    if (i == 0 || i == area - 1)
-                    {
-                        arena[i, j] = symbol;
-                    }
-                    else if (j == 0 || j == area - 1)
-                    {
-                        arena[i, j] = symbol;
-                    }
-                    else arena[i, j] = '.';
-                }
-            }
-
-
-            return arena;
-        }
 
         static int [] EggPosition(int[] eggPosition, int threadCount, int area) //расчёт позиции яйца
         {
