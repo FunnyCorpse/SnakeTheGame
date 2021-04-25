@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Collections.Generic;
 
 /* TO DO:
  * - навести порядок в переменных
@@ -16,6 +17,7 @@ namespace SnakeTheGame
     {
         public static int hieght;
         public static int weight;
+        public static int score = 0;
 
         static void ArenaDraw()
         {
@@ -42,14 +44,193 @@ namespace SnakeTheGame
             }
         }
 
+        static int[] EggPosition(int[] eggPosition, int threadCount) //расчёт позиции яйца
+        {
+            Random rnd = new Random();
+            if (threadCount == 0)
+            {
+                eggPosition[0] = rnd.Next(1, weight - 1);
+                eggPosition[1] = rnd.Next(1, hieght - 1);
+
+            }
+            return eggPosition;
+        }
+
+        static int[] SnakePosition(int[] snakePosition, ConsoleKey currentDirection) //расчёт положения змениной головы (пока без проверок)|| ПРОВЕРКИ В ОТДЕЛЬНОМ МЕТОДЕ
+        {
+            switch (currentDirection)
+            {
+
+                case ConsoleKey.LeftArrow:
+                    {
+                        snakePosition[0] = --snakePosition[0];
+                    }
+                    break;
+                case ConsoleKey.UpArrow:
+                    {
+                        snakePosition[1] = --snakePosition[1];
+                    }
+                    break;
+                case ConsoleKey.RightArrow:
+                    {
+                        snakePosition[0] = ++snakePosition[0];
+                    }
+                    break;
+                case ConsoleKey.DownArrow:
+                    {
+                        snakePosition[1] = ++snakePosition[1];
+                    }
+                    break;
+
+                default:
+                    break;
+
+            }
+            return snakePosition;
+        }
+
+        static bool GameOver(int[] snakePosition) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
+        {
+            bool gameOver = false;
+            for (int i = 0; i < snakePosition.Length; i++)
+            {
+                if (snakePosition[i] < 1)
+                {
+                    gameOver = true;
+                }
+            }
+            if (!gameOver)
+            {
+                if (snakePosition[0] >= weight - 1 || snakePosition[1] >= hieght - 1)
+                {
+                    gameOver = true;
+                }
+            }
+            return gameOver;
+        }
+
+        static ConsoleKey Movment(ConsoleKey currentDirection) //направеление движения, почему-то всегда надо нажимать клавишу, возможно стоит сделать отработку на случай отсутсвия нажатия. РЕШЕНО
+        {
+            ConsoleKeyInfo consoleKey = new ConsoleKeyInfo();
+            if (Console.KeyAvailable == true)
+            {
+                consoleKey = Console.ReadKey(true);
+
+                switch (consoleKey.Key)
+                {
+                    case ConsoleKey.LeftArrow:
+                        currentDirection = ConsoleKey.LeftArrow;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        currentDirection = ConsoleKey.UpArrow;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        currentDirection = ConsoleKey.RightArrow;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        currentDirection = ConsoleKey.DownArrow;
+                        break;
+                }
+            }
+            return currentDirection;
+        }
+
+        static char SnakeHeadSymbol(ConsoleKey currentDirection) //меняет символ змеиной головы в зависимости от направления движения
+        {
+            char headSymbol = ' ';
+
+            switch (currentDirection)
+            {
+
+                case ConsoleKey.LeftArrow:
+                    headSymbol = '<';
+                    break;
+                case ConsoleKey.UpArrow:
+                    headSymbol = '^';
+                    break;
+                case ConsoleKey.RightArrow:
+                    headSymbol = '>';
+                    break;
+                case ConsoleKey.DownArrow:
+                    headSymbol = 'v';
+                    break;
+                default:
+                    break;
+            }
+            return headSymbol;
+        }
+
+        static bool Eating(int[] eggPosition, int[] snakePosition) //было ли съедено яйцо
+        {
+            bool eating = false;
+            int eggY = eggPosition[0];
+            int eggX = eggPosition[1];
+            int snakeY = snakePosition[0];
+            int snakeX = snakePosition[1];
+            if (eggY == snakeY && eggX == snakeX)
+            {
+                eating = true;
+            }
+
+
+            return eating;
+        }
+
+        static void SnakeTailDraw(List<int[]> snakeTail)
+        {
+            foreach (var item in snakeTail)
+            {
+                Console.SetCursorPosition(item[0], item[1]);
+                Console.Write("#");
+            }
+        }
+
+        /*static int[,] OldSnakeTailPosition(int[,] snakeTailPosition)
+        {
+            int[,] oldSnakeTailPosition = new int[snakeTailPosition.GetLength(0), snakeTailPosition.GetLength(0)];
+
+            for (int i = 0; i < oldSnakeTailPosition.GetLength(0); i++)
+            {
+                for (int j = 0; j < oldSnakeTailPosition.GetLength(1); j++)
+                {
+
+                        int tempCoordinate = snakeTailPosition[i,j];
+                        snakeTailPosition[i, j] = tempCoordinate;
+                }
+            }
+
+            return oldSnakeTailPosition;
+        }*/
+
+        /*static int [,] SnakeTailPosition (int[] oldSnakePosition)
+        {
+            int[,] snakeTailPosition = new int[score + 1, 2];
+
+            for (int i = 0; i < snakeTailPosition.GetLength(0); i++)
+            {
+                for (int j = 0; j < snakeTailPosition.GetLength(1); j++)
+                {
+                    if (i==0)
+                    {
+                        int tempCoordinate = oldSnakePosition[j];
+                        snakeTailPosition[i, j] = tempCoordinate;
+                    }
+                }
+            }
+
+            return snakeTailPosition;
+        }*/
         static void Main(string[] args)
         {
             bool check, gameOver = false, eating=false, notFirstEteration = false;
-            int threadCount = 0, score = 0;
+            int threadCount = 0 /*score = 0*/;
             char symbol='+', egg = '0';
             int[] eggPosition = {0, 0};
             int[] oldEggPosition = new int[2];
             int[] oldSnakePosition = new int[2];
+            var snakeTail = new List<int[]>(score + 1) { };
+            //int[,] snakeTailPosition;
+            //int[,] oldSnakeTailPosition;
             ConsoleKey currentDirection = ConsoleKey.LeftArrow;
             Console.Write("Выберите размер игрового поля:\n1) 20*20\n2) 40*40\n3) 60*60\nВаш выбор: "); //вынести это недоразумение в отдельный метод
             do
@@ -126,14 +307,29 @@ namespace SnakeTheGame
                     Console.Write(' ');
                     Console.SetCursorPosition(snakePosition[0], snakePosition[1]);
                     Console.Write(SnakeHeadSymbol(currentDirection));
+                    SnakeTailDraw(snakeTail);
                     Console.SetCursorPosition(13, hieght + 1);
                     Console.Write(score);
                 }
                 for (int i = 0; i < oldEggPosition.Length; i++)
                 {
                     oldEggPosition[i] = eggPosition[i];
+                }
+                for (int i = 0; i < oldSnakePosition.Length; i++)
+                {
                     oldSnakePosition[i] = snakePosition[i];
                 }
+                snakeTail.Insert(0, oldSnakePosition);
+
+                /*if (score == 0)
+                {
+                    snakeTailPosition = SnakeTailPosition(oldSnakePosition);
+                    
+                }
+                else
+                {
+                    oldSnakeTailPosition = OldSnakeTailPosition(snakeTailPosition);
+                }*/
                 threadCount++;
                 if (threadCount >= 40)
                 {
@@ -147,140 +343,6 @@ namespace SnakeTheGame
             Console.WriteLine("GameOver!");
 
             Console.ReadLine();
-        }
-
-
-
-        static int [] EggPosition(int[] eggPosition, int threadCount) //расчёт позиции яйца
-        {
-            Random rnd = new Random();
-            if (threadCount==0)
-            {
-                eggPosition[0] = rnd.Next(1, weight - 1);
-                eggPosition[1] = rnd.Next(1, hieght - 1);
-
-            }
-            return eggPosition;
-        }
-
-        static int [] SnakePosition(int[] snakePosition, ConsoleKey currentDirection) //расчёт положения змениной головы (пока без проверок)|| ПРОВЕРКИ В ОТДЕЛЬНОМ МЕТОДЕ
-        {
-            switch (currentDirection)
-            {
-
-                case ConsoleKey.LeftArrow:
-                    {
-                        snakePosition[0] = --snakePosition[0];
-                    }
-                    break;
-                case ConsoleKey.UpArrow:
-                    {
-                        snakePosition[1] = --snakePosition[1];
-                    }
-                    break;
-                case ConsoleKey.RightArrow:
-                    {
-                        snakePosition[0] = ++snakePosition[0];
-                    }
-                    break;
-                case ConsoleKey.DownArrow:
-                    {
-                        snakePosition[1] = ++snakePosition[1];
-                    }
-                    break;
- 
-                default:
-                    break;
-                    
-            }
-            return snakePosition;
-        }
-
-        static bool GameOver (int[] snakePosition) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
-        {
-            bool gameOver=false;
-            for (int i = 0; i < snakePosition.Length; i++)
-            {
-                if (snakePosition[i] < 1)
-                {
-                    gameOver = true;
-                }
-            }
-            if (!gameOver)
-            {
-                if (snakePosition[0] >= weight - 1 || snakePosition[1] >= hieght - 1)
-                {
-                    gameOver = true;
-                }
-            }
-            return gameOver;
-        }
-
-        static ConsoleKey Movment(ConsoleKey currentDirection) //направеление движения, почему-то всегда надо нажимать клавишу, возможно стоит сделать отработку на случай отсутсвия нажатия. РЕШЕНО
-        {
-            ConsoleKeyInfo consoleKey = new ConsoleKeyInfo();
-            if (Console.KeyAvailable == true)
-            {
-                consoleKey = Console.ReadKey(true);
-
-                switch (consoleKey.Key)
-                {
-                    case ConsoleKey.LeftArrow:
-                        currentDirection = ConsoleKey.LeftArrow;
-                        break;
-                    case ConsoleKey.UpArrow:
-                        currentDirection = ConsoleKey.UpArrow;
-                        break;
-                    case ConsoleKey.RightArrow:
-                        currentDirection = ConsoleKey.RightArrow;
-                        break;
-                    case ConsoleKey.DownArrow:
-                        currentDirection = ConsoleKey.DownArrow;
-                        break;
-                }
-            }
-            return currentDirection;
-        }
-
-        static char SnakeHeadSymbol (ConsoleKey currentDirection) //меняет символ змеиной головы в зависимости от направления движения
-        {
-            char headSymbol = ' ';
-
-            switch (currentDirection)
-            {
-                
-                case ConsoleKey.LeftArrow:
-                    headSymbol = '<';
-                    break;
-                case ConsoleKey.UpArrow:
-                    headSymbol = '^';
-                    break;
-                case ConsoleKey.RightArrow:
-                    headSymbol = '>';
-                    break;
-                case ConsoleKey.DownArrow:
-                    headSymbol = 'v';
-                    break;
-                default:
-                    break;
-            }
-            return headSymbol;
-        }
-
-        static bool Eating ( int[] eggPosition, int[] snakePosition) //было ли съедено яйцо
-        {
-            bool eating = false;
-            int eggY = eggPosition[0];
-            int eggX = eggPosition[1];
-            int snakeY = snakePosition[0];
-            int snakeX = snakePosition[1];
-            if (eggY == snakeY && eggX == snakeX)
-            {
-                eating = true;
-            }
-
-
-            return eating;
         }
     }
 }
