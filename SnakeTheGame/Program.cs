@@ -18,6 +18,8 @@ namespace SnakeTheGame
         public static int hieght;
         public static int weight;
         public static int score = 0;
+        static char headSymbol = ' ';
+        static int[] deletePosition = new int[2];
 
         static void ArenaDraw()
         {
@@ -89,9 +91,10 @@ namespace SnakeTheGame
             return snakePosition;
         }
 
-        static bool GameOver(int[] snakePosition) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
+        static bool GameOver(int[] snakePosition, int[,] snakeTail) //проверка конца игры, пока что только на пересечение границы поля. Срабатывает не на всех сторонах. Почему?||РЕШЕНО
         {
             bool gameOver = false;
+            int[] snakeTailPosition = new int[2];
             for (int i = 0; i < snakePosition.Length; i++)
             {
                 if (snakePosition[i] < 1)
@@ -102,6 +105,17 @@ namespace SnakeTheGame
             if (!gameOver)
             {
                 if (snakePosition[0] >= weight - 1 || snakePosition[1] >= hieght - 1)
+                {
+                    gameOver = true;
+                }
+            }
+            for (int i = 0; i < snakeTail.GetLength(0); i++)
+            {
+                for (int j = 0; j < snakeTail.GetLength(1); j++)
+                {
+                    snakeTailPosition[j] = snakeTail[i, j];
+                }
+                if (snakePosition[0]== snakeTailPosition[0] && snakePosition[1] == snakeTailPosition[1])
                 {
                     gameOver = true;
                 }
@@ -119,16 +133,28 @@ namespace SnakeTheGame
                 switch (consoleKey.Key)
                 {
                     case ConsoleKey.LeftArrow:
-                        currentDirection = ConsoleKey.LeftArrow;
+                        if (currentDirection != ConsoleKey.RightArrow)
+                        {
+                            currentDirection = ConsoleKey.LeftArrow;
+                        }
                         break;
                     case ConsoleKey.UpArrow:
-                        currentDirection = ConsoleKey.UpArrow;
+                        if (currentDirection != ConsoleKey.DownArrow)
+                        {
+                            currentDirection = ConsoleKey.UpArrow;
+                        }
                         break;
                     case ConsoleKey.RightArrow:
-                        currentDirection = ConsoleKey.RightArrow;
+                        if (currentDirection != ConsoleKey.LeftArrow)
+                        {
+                            currentDirection = ConsoleKey.RightArrow;
+                        }
                         break;
                     case ConsoleKey.DownArrow:
-                        currentDirection = ConsoleKey.DownArrow;
+                        if (currentDirection != ConsoleKey.UpArrow)
+                        {
+                            currentDirection = ConsoleKey.DownArrow;
+                        }
                         break;
                 }
             }
@@ -137,8 +163,6 @@ namespace SnakeTheGame
 
         static char SnakeHeadSymbol(ConsoleKey currentDirection) //меняет символ змеиной головы в зависимости от направления движения
         {
-            char headSymbol = ' ';
-
             switch (currentDirection)
             {
 
@@ -176,61 +200,70 @@ namespace SnakeTheGame
             return eating;
         }
 
-        static void SnakeTailDraw(List<int[]> snakeTail)
+        static void SnakeTailDraw(int[,] snakeTail)
         {
-            foreach (var item in snakeTail)
+            int[] cursorPosition = new int[2];
+            for (int i = 0; i < snakeTail.GetLength(0); i++)
             {
-                Console.SetCursorPosition(item[0], item[1]);
+                for (int j = 0; j < snakeTail.GetLength(1); j++)
+                {
+                    cursorPosition[j] = snakeTail[i, j];
+                }
+                Console.SetCursorPosition(cursorPosition[0], cursorPosition[1]);
                 Console.Write("#");
+                Console.SetCursorPosition(deletePosition[0], deletePosition[1]);
+                Console.Write(" ");
             }
+
+        }
+        static int [,] ArrayTailDraw (int[] oldSnakeHeadPosition)
+        {
+            int[,] tailArray = new int[score, 2];
+            for (int i = 0; i < deletePosition.Length; i++)
+            {
+                deletePosition[i] = oldSnakeHeadPosition[i];
+            }
+            for (int i = 0; i < score; i++)
+            {
+                for (int j = 0; j < tailArray.GetLength(1); j++)
+                {
+                    tailArray[i, j] = oldSnakeHeadPosition[j];
+                }
+            }
+            return tailArray;
         }
 
-        /*static int[,] OldSnakeTailPosition(int[,] snakeTailPosition)
+        static int[,] ArrayTailDraw(int[] oldSnakeHeadPosition, int[,] oldTailArray)
         {
-            int[,] oldSnakeTailPosition = new int[snakeTailPosition.GetLength(0), snakeTailPosition.GetLength(0)];
-
-            for (int i = 0; i < oldSnakeTailPosition.GetLength(0); i++)
+            int[,] tailArray = new int[score, 2];
+            for (int i = 0; i < deletePosition.Length; i++)
             {
-                for (int j = 0; j < oldSnakeTailPosition.GetLength(1); j++)
-                {
-
-                        int tempCoordinate = snakeTailPosition[i,j];
-                        snakeTailPosition[i, j] = tempCoordinate;
-                }
+                deletePosition[i] = oldTailArray[oldTailArray.GetLength(0) - 1, i];
             }
 
-            return oldSnakeTailPosition;
-        }*/
-
-        /*static int [,] SnakeTailPosition (int[] oldSnakePosition)
-        {
-            int[,] snakeTailPosition = new int[score + 1, 2];
-
-            for (int i = 0; i < snakeTailPosition.GetLength(0); i++)
+            for (int i = 0; i < oldSnakeHeadPosition.Length; i++)
             {
-                for (int j = 0; j < snakeTailPosition.GetLength(1); j++)
+                    tailArray[0, i] = oldSnakeHeadPosition[i];
+            }
+            for (int i = 1; i < score; i++)
+            {
+                for (int j = 0; j < tailArray.GetLength(1); j++)
                 {
-                    if (i==0)
-                    {
-                        int tempCoordinate = oldSnakePosition[j];
-                        snakeTailPosition[i, j] = tempCoordinate;
-                    }
+                    tailArray[i, j] = oldTailArray[i-1, j];
                 }
             }
-
-            return snakeTailPosition;
-        }*/
+            return tailArray;
+        }
+        
         static void Main(string[] args)
         {
-            bool check, gameOver = false, eating=false, notFirstEteration = false;
+            bool check, gameOver = false, eating = false, notFirstEteration = false;
             int threadCount = 0 /*score = 0*/;
-            char symbol='+', egg = '0';
-            int[] eggPosition = {0, 0};
+            char symbol = '+', egg = '0';
+            int[] eggPosition = { 0, 0 };
             int[] oldEggPosition = new int[2];
             int[] oldSnakePosition = new int[2];
-            var snakeTail = new List<int[]>(score + 1) { };
-            //int[,] snakeTailPosition;
-            //int[,] oldSnakeTailPosition;
+            int[,] snakeTail = { { 0, 0} };
             ConsoleKey currentDirection = ConsoleKey.LeftArrow;
             Console.Write("Выберите размер игрового поля:\n1) 20*20\n2) 40*40\n3) 60*60\nВаш выбор: "); //вынести это недоразумение в отдельный метод
             do
@@ -271,7 +304,7 @@ namespace SnakeTheGame
             ArenaDraw();
             do
             {
-                
+
 
                 eggPosition = EggPosition(eggPosition, threadCount);
                 currentDirection = Movment(currentDirection);
@@ -289,7 +322,7 @@ namespace SnakeTheGame
                     egg = symbol;
 
                 }
-                gameOver = GameOver(snakePosition);
+                gameOver = GameOver(snakePosition, snakeTail);
                 if (!notFirstEteration)
                 {
                     Console.SetCursorPosition(6, hieght + 1);
@@ -307,7 +340,19 @@ namespace SnakeTheGame
                     Console.Write(' ');
                     Console.SetCursorPosition(snakePosition[0], snakePosition[1]);
                     Console.Write(SnakeHeadSymbol(currentDirection));
-                    SnakeTailDraw(snakeTail);
+                    if (score > 0)
+                    {
+                        if (score == 1)
+                        {
+                            snakeTail = ArrayTailDraw(oldSnakePosition);
+                        }
+                        else
+                        {
+                            snakeTail = ArrayTailDraw(oldSnakePosition, snakeTail);
+                        }
+
+                        SnakeTailDraw(snakeTail);
+                    }
                     Console.SetCursorPosition(13, hieght + 1);
                     Console.Write(score);
                 }
@@ -319,17 +364,7 @@ namespace SnakeTheGame
                 {
                     oldSnakePosition[i] = snakePosition[i];
                 }
-                snakeTail.Insert(0, oldSnakePosition);
 
-                /*if (score == 0)
-                {
-                    snakeTailPosition = SnakeTailPosition(oldSnakePosition);
-                    
-                }
-                else
-                {
-                    oldSnakeTailPosition = OldSnakeTailPosition(snakeTailPosition);
-                }*/
                 threadCount++;
                 if (threadCount >= 40)
                 {
